@@ -4,7 +4,7 @@ import {
   REDIRECT_DELAY_MS,
 } from "lib/constants";
 import { CheckCircle2, ImageIcon, UploadIcon } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router";
 
 interface UploadProps {
@@ -20,6 +20,19 @@ const Upload = ({ onComplete }: UploadProps) => {
 
   const { isSignedIn } = useOutletContext<AuthContext>();
 
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
+
   const processFile = useCallback(
     (file: File) => {
       if (!isSignedIn) return;
@@ -28,10 +41,12 @@ const Upload = ({ onComplete }: UploadProps) => {
       setProgress(0);
 
       const reader = new FileReader();
+
       reader.onerror = () => {
         setFile(null);
         setProgress(0);
       };
+
       reader.onloadend = () => {
         const base64Data = reader.result as string;
 
